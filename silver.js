@@ -1,10 +1,12 @@
 const mapScript = document.createElement('script');
-mapScript.src = 'https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.js';
+mapScript.src = 'https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js';
 document.head.appendChild(mapScript);
+mapScript.onload = mapRun;
 
-const mapStyle = document.createElement('script');
-mapStyle.href = 'https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.css';
+const mapStyle = document.createElement('link');
+mapStyle.href = 'https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css';
 mapStyle.rel = 'stylesheet';
+mapStyle.type = 'text/css';
 document.head.appendChild(mapStyle);
 
 while (rootDiv.firstChild) {
@@ -18,14 +20,15 @@ packageLoad.innerText = "Silver Package Render File Has Been Loaded";
 const mapArea = document.createElement("div");
 rootDiv.appendChild(mapArea);
 mapArea.setAttribute("id", "map");
+mapArea.style.height = "900px"
 
-
-  mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
+function mapRun() {
+  mapboxgl.accessToken = 'pk.eyJ1Ijoid29tYmF0MTk3MiIsImEiOiJjbDdycmxjNXIwaTJ1M3BudXB2ZTZoZm1tIn0.v-NAvl8Ba0yPtAtxOt9iTg';
 
   var map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v11',
-    center: [longitude, latitude],
+    style: 'mapbox://styles/mapbox/standard',
+    center: [-81.5367365, 35.081401],
     zoom: 12
   });
 
@@ -44,7 +47,7 @@ mapArea.setAttribute("id", "map");
             type: 'Feature',
             geometry: {
               type: 'Point',
-              coordinates: [longitude, latitude]
+              coordinates: [-81.5367365, 35.081401]
             },
             properties: {
               title: 'Your Marker Title',
@@ -139,3 +142,5 @@ mapArea.setAttribute("id", "map");
       map.getCanvas().style.cursor = '';
     });
   });
+}
+
