@@ -1,7 +1,7 @@
 const mapScript = document.createElement('script');
 mapScript.src = 'https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js';
 document.head.appendChild(mapScript);
-mapScript.onload = mapRun;
+mapScript.onload = dataGrab;
 
 const mapStyle = document.createElement('link');
 mapStyle.href = 'https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css';
@@ -32,6 +32,8 @@ async function dataGrab() {
 
         const data = await response.json();
         console.log(data);
+
+        mapRun();
     } catch (error) {
         console.error('Error fetching client information:', error.message);
     }
