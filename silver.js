@@ -22,15 +22,18 @@ rootDiv.appendChild(mapArea);
 mapArea.setAttribute("id", "map");
 mapArea.style.height = "900px";
 
+let data = ""
+
 async function dataGrab() {
     try {
+        console.log(clientID)
         const response = await fetch(`https://matrix.911-ens-services.com/data/${clientID}`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
-        const data = await response.json();
+        data = await response.json();
         console.log(data);
 
         mapRun();
@@ -45,12 +48,19 @@ function mapRun() {
   var map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/standard',
-    center: [-81.5367365, 35.081401],
+    center: [point[0].longitude, point[0].latitude],
     zoom: 12
   });
 
   // Add full-screen control
   map.addControl(new mapboxgl.FullscreenControl());
+
+  data.forEach(function (point) {
+    var marker = new mapboxgl.Marker()
+      .setLngLat([point.longitude, point.latitude])
+      .setPopup(new mapboxgl.Popup().setHTML(`<h3>${point.battalion}</h3><p>${point.type}</p>`))
+      .addTo(map);
+  });
 
   // Add marker clustering
   map.on('load', function () {
