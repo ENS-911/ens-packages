@@ -20,7 +20,22 @@ packageLoad.innerText = "Silver Package Render File Has Been Loaded";
 const mapArea = document.createElement("div");
 rootDiv.appendChild(mapArea);
 mapArea.setAttribute("id", "map");
-mapArea.style.height = "900px"
+mapArea.style.height = "900px";
+
+async function dataGrab() {
+    try {
+        const response = await fetch(`https://matrix.911-ens-services.com/data/${clientID}`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(data);
+    } catch (error) {
+        console.error('Error fetching client information:', error.message);
+    }
+}
 
 function mapRun() {
   mapboxgl.accessToken = 'pk.eyJ1Ijoid29tYmF0MTk3MiIsImEiOiJjbDdycmxjNXIwaTJ1M3BudXB2ZTZoZm1tIn0.v-NAvl8Ba0yPtAtxOt9iTg';
