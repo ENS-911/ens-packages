@@ -169,5 +169,19 @@ function mapRun() {
       map.getCanvas().style.cursor = '';
     });
   });
+
+  countsLoad();
+}
+
+async function countsLoad() {
+    try {
+        const response = await fetch(`https://matrix.911-ens-services.com/count/${clientID}`); // Replace with your server URL
+        const data = await response.json();
+    
+        console.log('Current Date Count:', data.currentDateCount);
+        console.log('Total Count:', data.totalCount);
+      } catch (error) {
+        console.error('Error fetching counts:', error);
+      }
 }
 
