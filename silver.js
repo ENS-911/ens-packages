@@ -22,7 +22,10 @@ rootDiv.appendChild(mapArea);
 mapArea.setAttribute("id", "map");
 mapArea.style.height = "900px";
 
-let data = ""
+let data = "";
+let nowCount = "";
+let dayCount = "";
+let yearCount = "";
 
 async function dataGrab() {
     try {
@@ -177,11 +180,19 @@ async function countsLoad() {
     try {
         const response = await fetch(`https://matrix.911-ens-services.com/count/${clientID}`); // Replace with your server URL
         const countData = await response.json();
-    
-        console.log('Current Date Count:', countData.currentDateCount);
-        console.log('Total Count:', countData.totalCount);
+
+        dayCount = countData.currentDateCount;
+        yearCount = countData.totalCount;
+
+        buildTrigger();
       } catch (error) {
         console.error('Error fetching counts:', error);
       }
 }
 
+function buildTrigger() {
+    countTrigger();
+    alertTrigger();
+    sortTrigger();
+    tableTrigger();
+}
