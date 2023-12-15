@@ -176,10 +176,10 @@ function mapRun() {
 async function countsLoad() {
     try {
         const response = await fetch(`https://matrix.911-ens-services.com/count/${clientID}`); // Replace with your server URL
-        const data = await response.json();
+        const countData = await response.json();
     
-        console.log('Current Date Count:', data.currentDateCount);
-        console.log('Total Count:', data.totalCount);
+        console.log('Current Date Count:', countData.currentDateCount);
+        console.log('Total Count:', countData.totalCount);
       } catch (error) {
         console.error('Error fetching counts:', error);
       }
