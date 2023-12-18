@@ -203,7 +203,7 @@ function countTrigger() {
   const script = document.createElement('script');
           
 
-  script.src = `https://ensloadout.911emergensee.com/ens-packages/components/cb0.js.js`;
+  script.src = `https://ensloadout.911emergensee.com/ens-packages/components/count-bars/cb0.js.js`;
           
 
   document.head.appendChild(script);
