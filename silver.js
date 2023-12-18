@@ -9,23 +9,25 @@ mapStyle.rel = 'stylesheet';
 mapStyle.type = 'text/css';
 document.head.appendChild(mapStyle);
 
+//Data Store
+let data = "";
+let nowCount = "";
+let dayCount = "";
+let yearCount = "";
+//End Data Store
+
 while (rootDiv.firstChild) {
     rootDiv.removeChild(rootDiv.firstChild);
 }
 
-const packageLoad = document.createElement("h1");
-rootDiv.appendChild(packageLoad);
-packageLoad.innerText = "Silver Package Render File Has Been Loaded";
+const countBlock = document.createElement("div");
+rootDiv.appendChild(countBlock);
+countBlock.id = 'countBlock';
 
 const mapArea = document.createElement("div");
 rootDiv.appendChild(mapArea);
 mapArea.setAttribute("id", "map");
 mapArea.style.height = "900px";
-
-let data = "";
-let nowCount = "";
-let dayCount = "";
-let yearCount = "";
 
 async function dataGrab() {
     try {
@@ -195,4 +197,34 @@ function buildTrigger() {
     alertTrigger();
     sortTrigger();
     tableTrigger();
+}
+
+function countTrigger() {
+  const script = document.createElement('script');
+          
+
+  script.src = `https://ensloadout.911emergensee.com/ens-packages/components/cb0.js.js`;
+          
+
+  document.head.appendChild(script);
+          
+  script.onload = function () {
+    console.log('External script loaded successfully');
+  };
+          
+  script.onerror = function () {
+    console.error('Error loading external script');
+  };
+}
+
+function alertTrigger() {
+  console.log('Aleart triggered');
+}
+
+function sortTrigger() {
+  console.log('Sort Triggered');
+}
+
+function tableTrigger() {
+  console.log('Table Triggered');
 }
