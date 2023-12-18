@@ -6,4 +6,4 @@ dayBlock.innerText = `Day Total: ${dayCount}`;
 
 const yearBlock = document.createElement("h3");
 countDiv.appendChild(yearBlock);
-yearBlock.innerText = `Day Total: ${yearCount}`;
+yearBlock.innerText = `Year Total: ${yearCount}`;

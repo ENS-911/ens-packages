@@ -218,7 +218,21 @@ function countTrigger() {
 }
 
 function alertTrigger() {
-  console.log('Aleart triggered');
+  const scroll = document.createElement('script');
+          
+
+  scroll.src = `https://ensloadout.911emergensee.com/ens-packages/components/alert-bars/ab0.js`;
+          
+
+  document.head.appendChild(scroll);
+          
+  scroll.onload = function () {
+    console.log('External scroll loaded successfully');
+  };
+          
+  scroll.onerror = function () {
+    console.error('Error loading external scroll');
+  };
 }
 
 function sortTrigger() {
