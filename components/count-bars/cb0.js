@@ -1,9 +1,9 @@
 const countDiv = document.getElementById("countBlock");
 
-const dayBlock = document.createElement(h3);
+const dayBlock = document.createElement("h3");
 countDiv.appendChild(dayBlock);
 dayBlock.innerText = `Day Total: ${dayCount}`;
 
-const yearBlock = document.createElement(h3);
+const yearBlock = document.createElement("h3");
 countDiv.appendChild(yearBlock);
 yearBlock.innerText = `Day Total: ${yearCount}`;
