@@ -186,17 +186,10 @@ async function countsLoad() {
         dayCount = countData.currentDateCount;
         yearCount = countData.totalCount;
 
-        buildTrigger();
+        countTrigger();
       } catch (error) {
         console.error('Error fetching counts:', error);
       }
-}
-
-function buildTrigger() {
-    countTrigger();
-    alertTrigger();
-    sortTrigger();
-    tableTrigger();
 }
 
 function countTrigger() {

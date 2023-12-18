@@ -13,3 +13,5 @@ const yearBlock = document.createElement("h3");
 countWrap.appendChild(yearBlock);
 yearBlock.innerText = `Year Total: ${yearCount}`;
 yearBlock.className = "countItem";
+
+alertTrigger();
