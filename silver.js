@@ -215,14 +215,18 @@ function countTrigger() {
   script.onerror = function () {
     console.error('Error loading external script');
   };
+
+  const countStyle = document.createElement('link');
+  countStyle.href = 'https://ensloadout.911emergensee.com/ens-packages/components/count-bars/cb0.css';
+  countStyle.rel = 'stylesheet';
+  countStyle.type = 'text/css';
+  document.head.appendChild(countStyle);
 }
 
 function alertTrigger() {
   const scroll = document.createElement('script');
-          
-
+  
   scroll.src = `https://ensloadout.911emergensee.com/ens-packages/components/alert-bars/ab0.js`;
-          
 
   document.head.appendChild(scroll);
           
@@ -233,6 +237,7 @@ function alertTrigger() {
   scroll.onerror = function () {
     console.error('Error loading external scroll');
   };
+  
 }
 
 function sortTrigger() {
