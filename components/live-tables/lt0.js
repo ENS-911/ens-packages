@@ -8,15 +8,15 @@ data.forEach(function (bar) {
     const tRow = document.createElement("tr");
     tableWrap.appendChild(tRow);
 
-    const typeTc = document.createElement("tc");
+    const typeTc = document.createElement("td");
     tRow.appendChild(typeTc);
     typeTc.innerText = `${bar.agency_type}`;
 
-    const statTc = document.createElement("tc");
+    const statTc = document.createElement("td");
     tRow.appendChild(statTc);
     statTc.innerText = `${bar.status}`;
 
-    const numbTc = document.createElement("tc");
+    const numbTc = document.createElement("td");
     tRow.appendChild(numbTc);
     numbTc.innerText = `${bar.sequencenumber}`;
 
@@ -29,23 +29,23 @@ data.forEach(function (bar) {
         day: 'numeric',
       }) + ' ' + date.toLocaleTimeString('en-US');
 
-    const dateTc = document.createElement("tc");
+    const dateTc = document.createElement("td");
     tRow.appendChild(dateTc);
     dateTc.innerText = `${readableDate}`;
 
-    const agencyTc = document.createElement("tc");
+    const agencyTc = document.createElement("td");
     tRow.appendChild(agencyTc);
     agencyTc.innerText = `${bar.jurisdiction}`;
 
-    const eventTc = document.createElement("tc");
+    const eventTc = document.createElement("td");
     tRow.appendChild(eventTc);
     eventTc.innerText = `${bar.type}`;
 
-    const locTc = document.createElement("tc");
+    const locTc = document.createElement("td");
     tRow.appendChild(locTc);
     locTc.innerText = `${bar.location}`;
 
-    const areaTc = document.createElement("tc");
+    const areaTc = document.createElement("td");
     tRow.appendChild(areaTc);
     areaTc.innerText = `${bar.db_city}`;
 });

@@ -1,0 +1,14 @@
+.tableWrap {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.tableWrap tr:nth-child(odd) {
+    background-color: #f2f2f2;
+}
+
+.tableWrap td {
+    text-align: center;
+    width: 1%;
+    padding: 12px 0;
+}
