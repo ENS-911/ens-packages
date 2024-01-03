@@ -8,3 +8,5 @@ const marquee = document.createElement('marquee');
 
   // Append the marquee to the body or any other element you prefer
   countDiv.appendChild(marquee);
+
+  tableTrigger()

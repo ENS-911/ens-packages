@@ -29,6 +29,10 @@ rootDiv.appendChild(mapArea);
 mapArea.setAttribute("id", "map");
 mapArea.style.height = "900px";
 
+const tableBlock = document.createElement("div");
+rootDiv.appendChild(tableBlock);
+tableBlock.id = 'tableBlock';
+
 async function dataGrab() {
     try {
         console.log(clientID)
@@ -1257,5 +1261,25 @@ function sortTrigger() {
 }
 
 function tableTrigger() {
-  console.log('Table Triggered');
+    const script = document.createElement('script');
+          
+
+    script.src = `https://ensloadout.911emergensee.com/ens-packages/components/live-tables/lt0.js`;
+            
+  
+    document.head.appendChild(script);
+            
+    script.onload = function () {
+      console.log('Table script loaded successfully');
+    };
+            
+    script.onerror = function () {
+      console.error('Error loading table script');
+    };
+  
+    const tableStyle = document.createElement('link');
+    tableStyle.href = 'https://ensloadout.911emergensee.com/ens-packages/components/live-tables/lt0.css';
+    tableStyle.rel = 'stylesheet';
+    tableStyle.type = 'text/css';
+    document.head.appendChild(tableStyle);
 }
