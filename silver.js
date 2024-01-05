@@ -15,6 +15,7 @@ let nowCount = "";
 let dayCount = "";
 let yearCount = "";
 let countyCords = "";
+let weatherData = "";
 //End Data Store
 
 while (rootDiv.firstChild) {
@@ -68,6 +69,24 @@ async function countyCordsGrab() {
     } catch (error) {
         console.error('Error fetching client information:', error.message);
     }
+    countyWeatherGrab()
+}
+
+async function countyWeatherGrab() {
+    try {
+        const response = await fetch('https://api.weather.gov/alerts?zone=TNC065');
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        countyWeatherData = await response.json();
+        weatherData = countyWeatherData;
+        console.log(weatherData);
+
+    } catch (error) {
+        console.error('Error fetching client information:', error.message);
+    }
 }
 
 function mapRun() {
@@ -79,6 +98,23 @@ function mapRun() {
     center: [data[0].longitude, data[0].latitude],
     zoom: 12
   });
+
+  
+
+  try {
+    const response = fetch(`http://maps.openweathermap.org/maps/2.0/weather/PAC0/12/500/500?appid=bfa689a00c0a5864039c9e7396f1e745`);
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const countyWeatherDat = response.json();
+    console.log(countyWeatherDat);
+
+} catch (error) {
+    console.error('Error fetching client information:', error.message);
+}
+
 
   // Add full-screen control
   map.addControl(new mapboxgl.FullscreenControl());
@@ -223,6 +259,21 @@ function mapRun() {
   countsLoad();
 }
 
+function weather() {
+    if (weatherData.features && weatherData.features.length > 0) {
+    weatherData.features.forEach(function(item) {
+    // Check if the word "Warning" is in the value of the "event" key
+    if (item.event && item.event.includes("Warning")) {
+        console.log("Warning found in event:", item.event);
+    } else {
+        console.log("No Warning in event:", item.event);
+    }
+    });
+} else {
+    console.log("No warnings")
+}
+}
+
 async function countsLoad() {
     try {
         const response = await fetch(`https://matrix.911-ens-services.com/count/${clientID}`); // Replace with your server URL
@@ -237,6 +288,7 @@ async function countsLoad() {
       } catch (error) {
         console.error('Error fetching counts:', error);
       }
+      weather()
 }
 
 function countTrigger() {
