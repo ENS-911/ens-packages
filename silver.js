@@ -99,22 +99,6 @@ function mapRun() {
     zoom: 12
   });
 
-  
-
-  try {
-    const response = fetch(`http://maps.openweathermap.org/maps/2.0/weather/PAC0/12/500/500?appid=bfa689a00c0a5864039c9e7396f1e745`);
-
-    if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    const countyWeatherDat = response.json();
-    console.log(countyWeatherDat);
-
-} catch (error) {
-    console.error('Error fetching client information:', error.message);
-}
-
 
   // Add full-screen control
   map.addControl(new mapboxgl.FullscreenControl());
@@ -201,62 +185,74 @@ function mapRun() {
       }
     });
 
-    // Add popups
-    map.on('click', 'clusters', function (e) {
-      var features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
-      var clusterId = features[0].properties.cluster_id;
-      map.getSource('markers').getClusterExpansionZoom(clusterId, function (err, zoom) {
-        if (err) return;
+        // Add popups
+        map.on('click', 'clusters', function (e) {
+            var features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+            var clusterId = features[0].properties.cluster_id;
+            map.getSource('markers').getClusterExpansionZoom(clusterId, function (err, zoom) {
+                if (err) return;
 
-        map.easeTo({
-          center: features[0].geometry.coordinates,
-          zoom: zoom
+                map.easeTo({
+                    center: features[0].geometry.coordinates,
+                    zoom: zoom
+                });
+            });
         });
-      });
+
+        map.on('click', 'unclustered-point', function (e) {
+            var coordinates = e.features[0].geometry.coordinates.slice();
+            var description = e.features[0].properties.description;
+
+            new mapboxgl.Popup()
+            .setLngLat(coordinates)
+            .setHTML(description)
+            .addTo(map);
+        });
+
+        map.on('mouseenter', 'clusters', function () {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        map.on('mouseleave', 'clusters', function () {
+            map.getCanvas().style.cursor = '';
+        });
     });
 
-    map.on('click', 'unclustered-point', function (e) {
-      var coordinates = e.features[0].geometry.coordinates.slice();
-      var description = e.features[0].properties.description;
-
-      new mapboxgl.Popup()
-        .setLngLat(coordinates)
-        .setHTML(description)
-        .addTo(map);
-    });
-
-    map.on('mouseenter', 'clusters', function () {
-      map.getCanvas().style.cursor = 'pointer';
-    });
-
-    map.on('mouseleave', 'clusters', function () {
-      map.getCanvas().style.cursor = '';
-    });
-  });
-
-  map.on('load', function () {
-    map.addLayer({
-        'id': 'polygon-outline',
-        'type': 'line',
-        'source': {
-            'type': 'geojson',
-            'data': {
-                'type': 'Feature',
-                'geometry': {
-                    'type': 'Polygon',
-                    'coordinates': [countyCords],
+    map.on('load', function () {
+        map.addLayer({
+            'id': 'polygon-outline',
+            'type': 'line',
+            'source': {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Polygon',
+                        'coordinates': [countyCords],
+                    }
                 }
+            },
+            'layout': {},
+            'paint': {
+                'line-color': '#FF0000',
+                'line-width': 2
             }
-        },
-        'layout': {},
-        'paint': {
-            'line-color': '#FF0000',
-            'line-width': 2
-        }
+        });
     });
-});
 
-  countsLoad();
+    map.on('load', function(){
+        map.addLayer({
+            "id": "simple-tiles",
+            "type": "raster",
+            "source": {
+                "type": "raster",
+                "tiles": ["https://tile.openweathermap.org/map/precipitation/{z}/{x}/{y}.png?appid=bfa689a00c0a5864039c9e7396f1e745"],
+                "tileSize": 256
+            },
+        });
+    });
+
+    countsLoad();
 }
 
 function weather() {
