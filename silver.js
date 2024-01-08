@@ -16,7 +16,8 @@ let dayCount = "";
 let yearCount = "";
 let countyCords = "";
 let weatherData = "";
-let countyCode = "TNC065";
+//let countyCode = "TNC065";
+let countyCode = "AKC185";
 //End Data Store
 
 while (rootDiv.firstChild) {
@@ -49,7 +50,7 @@ async function dataGrab() {
         console.log(data);
 
         countyCordsGrab();
-        mapRun();
+        
     } catch (error) {
         console.error('Error fetching client information:', error.message);
     }
@@ -88,6 +89,7 @@ async function countyWeatherGrab() {
     } catch (error) {
         console.error('Error fetching client information:', error.message);
     }
+    mapRun();
 }
 
 function mapRun() {
@@ -252,24 +254,25 @@ function mapRun() {
             },
         });
     });
-
-    countsLoad();
+    weather()
+    
 }
 
 function weather() {
     if (weatherData.features && weatherData.features.length > 0) {
     weatherData.features.forEach(function(item) {
     // Check if the word "Warning" is in the value of the "event" key
-    if (item.event && item.event.includes("Warning")) {
-        console.log("Warning found in event:", item.event);
+    if (item.properties.event && item.properties.event.includes("Warning")) {
+        console.log("Warning found in event:", item.properties.event);
         weatherActivate();
     } else {
-        console.log("No Warning in event:", item.event);
+        console.log("No Warning in event:", item.properties.event);
     }
     });
 } else {
     console.log("No warnings")
 }
+countsLoad();
 }
 
 async function countsLoad() {
@@ -286,7 +289,7 @@ async function countsLoad() {
       } catch (error) {
         console.error('Error fetching counts:', error);
       }
-      weather()
+      
 }
 
 function countTrigger() {
