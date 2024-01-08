@@ -16,6 +16,7 @@ let dayCount = "";
 let yearCount = "";
 let countyCords = "";
 let weatherData = "";
+let countyCode = "TNC065";
 //End Data Store
 
 while (rootDiv.firstChild) {
@@ -56,7 +57,7 @@ async function dataGrab() {
 
 async function countyCordsGrab() {
     try {
-        const response = await fetch('https://api.weather.gov/zones/county/TNC065');
+        const response = await fetch(`https://api.weather.gov/zones/county/${countyCode}`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -74,7 +75,7 @@ async function countyCordsGrab() {
 
 async function countyWeatherGrab() {
     try {
-        const response = await fetch('https://api.weather.gov/alerts?zone=TNC065');
+        const response = await fetch(`https://api.weather.gov/alerts?zone=${countyCode}`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -261,6 +262,7 @@ function weather() {
     // Check if the word "Warning" is in the value of the "event" key
     if (item.event && item.event.includes("Warning")) {
         console.log("Warning found in event:", item.event);
+        weatherActivate();
     } else {
         console.log("No Warning in event:", item.event);
     }
@@ -325,6 +327,12 @@ function alertTrigger() {
   scroll.onerror = function () {
     console.error('Error loading external scroll');
   };
+
+  const alertStyle = document.createElement('link');
+  alertStyle.href = 'https://ensloadout.911emergensee.com/ens-packages/components/alert-bars/ab0.css';
+  alertStyle.rel = 'stylesheet';
+  alertStyle.type = 'text/css';
+  document.head.appendChild(alertStyle);
   
 }
 
@@ -354,4 +362,20 @@ function tableTrigger() {
     tableStyle.rel = 'stylesheet';
     tableStyle.type = 'text/css';
     document.head.appendChild(tableStyle);
+}
+
+function weatherActivate() {
+    const WeatherActivation = document.createElement('script');
+  
+    WeatherActivation.src = `https://ensloadout.911emergensee.com/ens-packages/components/weatherAlertTrigger.js`;
+
+    document.head.appendChild(WeatherActivation);
+          
+    WeatherActivation.onload = function () {
+        console.log('External WeatherActivation loaded successfully');
+    };
+          
+    WeatherActivation.onerror = function () {
+        console.error('Error loading external WeatherActivation');
+    };
 }
