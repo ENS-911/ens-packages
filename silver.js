@@ -18,6 +18,7 @@ let countyCords = "";
 let weatherData = "";
 //let countyCode = "TNC065";
 let countyCode = "AKC185";
+let alertStatus = "off";
 //End Data Store
 
 while (rootDiv.firstChild) {
@@ -76,7 +77,7 @@ async function countyCordsGrab() {
 
 async function countyWeatherGrab() {
     try {
-        const response = await fetch(`https://api.weather.gov/alerts?zone=${countyCode}`);
+        const response = await fetch(`https://api.weather.gov/alerts/active?zone=${countyCode}`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -260,7 +261,26 @@ function mapRun() {
 
 function weather() {
     if (weatherData.features && weatherData.features.length > 0) {
-    weatherData.features.forEach(function(item) {
+    
+        function extractHighestValueObjects(jsonData) {
+            const urlGroups = {};
+        
+            jsonData.forEach(item => {
+                const url = item.id; // Assuming 'id' is the field name where URL is stored
+                const basePart = url.match(/(https:\/\/api\.weather\.gov\/alerts\/urn:oid:2\.49\.0\.1\.840\.0\.[^.]+)\./)[1];
+                const numericPart = parseInt(url.split('.').slice(-2, -1), 10); // Extract the second last part
+        
+                if (!urlGroups[basePart] || numericPart > urlGroups[basePart].numericPart) {
+                    urlGroups[basePart] = { numericPart: numericPart, object: item };
+                }
+            });
+        
+            return Object.values(urlGroups).map(group => group.object);
+        }
+        const highestValueObjects = extractHighestValueObjects(weatherData.features);
+        console.log(highestValueObjects);
+
+        highestValueObjects.forEach(function(item) {
     // Check if the word "Warning" is in the value of the "event" key
     if (item.properties.event && item.properties.event.includes("Warning")) {
         console.log("Warning found in event:", item.properties.event);
