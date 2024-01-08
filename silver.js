@@ -96,7 +96,7 @@ function mapRun() {
     container: 'map',
     style: 'mapbox://styles/mapbox/standard',
     center: [data[0].longitude, data[0].latitude],
-    zoom: 12
+    zoom: 10
   });
 
 
