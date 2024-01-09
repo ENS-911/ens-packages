@@ -17,7 +17,8 @@ let yearCount = "";
 let countyCords = "";
 let weatherData = "";
 //let countyCode = "TNC065";
-let countyCode = "AKC185";
+//let countyCode = "AKC185";
+let countyCode = "GAC127";
 let alertStatus = "off";
 //End Data Store
 
@@ -66,7 +67,7 @@ async function countyCordsGrab() {
         }
 
         countyData = await response.json();
-        countyCords = countyData.geometry.coordinates[0];
+        countyCords = countyData.geometry.coordinates;
         console.log(countyCords);
 
     } catch (error) {
@@ -223,6 +224,31 @@ function mapRun() {
     });
 
     map.on('load', function () {
+        if (countyCords.length > 1) {
+            let i = 1
+            countyCords.forEach(singleCord => {
+                map.addLayer({
+                    'id': `polygon-outline${i}`,
+                    'type': 'line',
+                    'source': {
+                        'type': 'geojson',
+                        'data': {
+                            'type': 'Feature',
+                            'geometry': {
+                                'type': 'Polygon',
+                                'coordinates': singleCord,
+                            }
+                        }
+                    },
+                    'layout': {},
+                    'paint': {
+                        'line-color': '#FF0000',
+                        'line-width': 2
+                    }
+                });
+                i++
+            })
+        } else {
         map.addLayer({
             'id': 'polygon-outline',
             'type': 'line',
@@ -242,6 +268,7 @@ function mapRun() {
                 'line-width': 2
             }
         });
+        }
     });
 
     map.on('load', function(){
