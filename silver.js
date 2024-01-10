@@ -16,9 +16,9 @@ let dayCount = "";
 let yearCount = "";
 let countyCords = "";
 let weatherData = "";
-//let countyCode = "TNC065";
+let countyCode = "TNC065";
 //let countyCode = "AKC185";
-let countyCode = "GAC127";
+//let countyCode = "GAC127";
 let alertStatus = "off";
 //End Data Store
 
@@ -222,9 +222,31 @@ function mapRun() {
             map.getCanvas().style.cursor = '';
         });
     });
-
+    console.log("cord count = "+ countyCords.length)
     map.on('load', function () {
-        if (countyCords.length > 1) {
+        if (countyCords.length === 1) {
+            console.log("single map run")
+        map.addLayer({
+            'id': 'polygon-outline',
+            'type': 'line',
+            'source': {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Polygon',
+                        'coordinates': countyCords,
+                    }
+                }
+            },
+            'layout': {},
+            'paint': {
+                'line-color': '#FF0000',
+                'line-width': 2
+            }
+        });
+        } else {
+            console.log("multi map run")
             let i = 1
             countyCords.forEach(singleCord => {
                 map.addLayer({
@@ -248,26 +270,6 @@ function mapRun() {
                 });
                 i++
             })
-        } else {
-        map.addLayer({
-            'id': 'polygon-outline',
-            'type': 'line',
-            'source': {
-                'type': 'geojson',
-                'data': {
-                    'type': 'Feature',
-                    'geometry': {
-                        'type': 'Polygon',
-                        'coordinates': [countyCords],
-                    }
-                }
-            },
-            'layout': {},
-            'paint': {
-                'line-color': '#FF0000',
-                'line-width': 2
-            }
-        });
         }
     });
 
@@ -310,14 +312,24 @@ function weather() {
         highestValueObjects.forEach(function(item) {
     // Check if the word "Warning" is in the value of the "event" key
     if (item.properties.event && item.properties.event.includes("Warning")) {
+        alertStatus = "Warning"
         console.log("Warning found in event:", item.properties.event);
-        weatherActivate();
+    } else if (item.properties.event && item.properties.event.includes("Watch")) {
+        if (alertStatus == "off") {
+            alertStatus = "Watch"
+        }
+        console.log("Watch found in event:", item.properties.event); 
     } else {
         console.log("No Warning in event:", item.properties.event);
     }
+    
     });
 } else {
     console.log("No warnings")
+    alertStatus == "off"
+}
+if (alertStatus != "off") {
+    weatherActivate();
 }
 countsLoad();
 }
