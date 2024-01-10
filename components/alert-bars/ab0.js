@@ -1,13 +1,22 @@
-const marquee = document.createElement('marquee');
+function createMarquee(warning) {
+  const marquee = document.createElement('div');
+  marquee.className = 'marquee';
 
-  // Set marquee attributes and content
-  marquee.setAttribute('behavior', 'scroll');
-  marquee.setAttribute('direction', 'left');
-  marquee.setAttribute('scrollamount', '5'); // Adjust the scroll speed as needed
-  marquee.textContent = 'This is a dynamically generated marquee! ';
-  marquee.className = "alertBar";
+  warning.forEach((line, index) => {
+      const textElement = document.createElement('div');
+      textElement.className = 'marquee-content';
+      textElement.textContent = line;
+      textElement.style.animationDelay = `${index * 10}s`; // Adjust time as needed
+      textElement.style.animation = 'scrollText 10s linear infinite';
+      marquee.appendChild(textElement);
+  });
 
-  // Append the marquee to the body or any other element you prefer
-  countDiv.appendChild(marquee);
+  const dropBox = document.getElementById("countBlock")
+  dropBox.appendChild(marquee);
+}
+
+// Example usage
+const lines = ["First line of text", "Second line of text", "Third line of text"];
+createMarquee(warning);
 
   tableTrigger()

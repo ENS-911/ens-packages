@@ -20,6 +20,8 @@ let countyCode = "TNC065";
 //let countyCode = "AKC185";
 //let countyCode = "GAC127";
 let alertStatus = "off";
+let warning = [];
+let warningData = [];
 //End Data Store
 
 while (rootDiv.firstChild) {
@@ -91,6 +93,7 @@ async function countyWeatherGrab() {
     } catch (error) {
         console.error('Error fetching client information:', error.message);
     }
+    weather();
     mapRun();
 }
 
@@ -273,18 +276,103 @@ function mapRun() {
         }
     });
 
-    map.on('load', function(){
-        map.addLayer({
-            "id": "simple-tiles",
-            "type": "raster",
-            "source": {
-                "type": "raster",
-                "tiles": ["https://tile.openweathermap.org/map/precipitation/{z}/{x}/{y}.png?appid=bfa689a00c0a5864039c9e7396f1e745"],
-                "tileSize": 256
-            },
-        });
+    map.on('load', function() {
+        if (warningData.length >= 1) {
+            warningData.forEach((warning, index) => {
+                if (warning.geometry != null) {
+                    const layerIdFill = `warning-fill-${index}`;
+                    const layerIdText = `warning-text-${index}`;
+    
+                    // Create a fill layer for polygon
+                    try {
+                        map.addLayer({
+                            'id': layerIdFill,
+                            'type': 'fill',
+                            'source': {
+                                'type': 'geojson',
+                                'data': {
+                                    'type': 'Feature',
+                                    'geometry': {
+                                        'type': 'Polygon',
+                                        'coordinates': warning.geometry.coordinates,
+                                    }
+                                }
+                            },
+                            'paint': {
+                                'fill-color': '#FF0000', // Adjust fill color as needed
+                                'fill-opacity': 0.5      // Adjust fill opacity as needed
+                            }
+                        });
+                    } catch (e) {
+                        console.error(`Error adding fill layer ${layerIdFill}:`, e);
+                    }
+
+                    function findCentroid(coordsArray) {
+                        let latSum = 0;
+                        let lonSum = 0;
+                        let count = 0;
+                    
+                        coordsArray.forEach(coords => {
+                            coords.forEach(coord => {
+                                latSum += coord[0]; // Assuming coord[0] is latitude
+                                lonSum += coord[1]; // Assuming coord[1] is longitude
+                                count++;
+                            });
+                        });
+                    
+                        return [latSum / count, lonSum / count];
+                    }
+
+                    const centroid = findCentroid(warning.geometry.coordinates);
+                    console.log('Centroid:', centroid);
+    
+                    // Create a text layer for labels
+                    try {
+                        map.addLayer({
+                            'id': layerIdText,
+                            'type': 'symbol',
+                            'source': {
+                                'type': 'geojson',
+                                'data': {
+                                    'type': 'Feature',
+                                    'geometry': {
+                                        'type': 'Point',
+                                        'coordinates': centroid // Set the coordinates for label positioning
+                                    },
+                                    'properties': {
+                                        'title': warning.properties.event // Replace with your text property
+                                    }
+                                }
+                            },
+                            'layout': {
+                                'text-field': '{title}', // Use the 'title' property from the GeoJSON properties
+                                'text-size': 18          // Adjust text size as needed
+                            },
+                            'paint': {
+                                'text-color': '#000000' // Adjust text color as needed
+                            }
+                        });
+                    } catch (e) {
+                        console.error(`Error adding text layer ${layerIdText}:`, e);
+                    }
+                }
+            });
+        }
     });
-    weather()
+
+    if (alertStatus != "off") {
+        map.on('load', function(){
+            map.addLayer({
+                "id": "simple-tiles",
+                "type": "raster",
+                "source": {
+                    "type": "raster",
+                    "tiles": ["https://tile.openweathermap.org/map/precipitation/{z}/{x}/{y}.png?appid=bfa689a00c0a5864039c9e7396f1e745"],
+                    "tileSize": 256
+                },
+            });
+        });
+    }
     
 }
 
@@ -312,7 +400,9 @@ function weather() {
         highestValueObjects.forEach(function(item) {
     // Check if the word "Warning" is in the value of the "event" key
     if (item.properties.event && item.properties.event.includes("Warning")) {
-        alertStatus = "Warning"
+        alertStatus = "Warning";
+        warningData.push(item);
+        warning.push(item.properties.headline);
         console.log("Warning found in event:", item.properties.event);
     } else if (item.properties.event && item.properties.event.includes("Watch")) {
         if (alertStatus == "off") {
@@ -330,6 +420,42 @@ function weather() {
 }
 if (alertStatus != "off") {
     weatherActivate();
+}
+
+function warningBoxes() {
+    if (!map || typeof map.addLayer !== 'function') {
+        console.error('Invalid map object or map does not support addLayer');
+        return;
+    }
+
+    let i = 1
+    warningData.forEach(warning => {
+        if (warning.geometry != null) {
+            const warnCoord = [warning.geometry.coordinates];
+            console.log("warnCoords " + warnCoord)
+                map.addLayer({
+                    'id': `warning-outline${i}`,
+                    'type': 'line',
+                    'source': {
+                        'type': 'geojson',
+                        'data': {
+                            'type': 'Feature',
+                            'geometry': {
+                                'type': 'Polygon',
+                                'coordinates': warnCoord,
+                            }
+                        }
+                    },
+                    'layout': {},
+                    'paint': {
+                        'line-color': '#FF0000',
+                        'line-width': 2
+                    }
+                });
+                i++
+        }
+    })
+        
 }
 countsLoad();
 }
@@ -373,29 +499,6 @@ function countTrigger() {
   countStyle.rel = 'stylesheet';
   countStyle.type = 'text/css';
   document.head.appendChild(countStyle);
-}
-
-function alertTrigger() {
-  const scroll = document.createElement('script');
-  
-  scroll.src = `https://ensloadout.911emergensee.com/ens-packages/components/alert-bars/ab0.js`;
-
-  document.head.appendChild(scroll);
-          
-  scroll.onload = function () {
-    console.log('External scroll loaded successfully');
-  };
-          
-  scroll.onerror = function () {
-    console.error('Error loading external scroll');
-  };
-
-  const alertStyle = document.createElement('link');
-  alertStyle.href = 'https://ensloadout.911emergensee.com/ens-packages/components/alert-bars/ab0.css';
-  alertStyle.rel = 'stylesheet';
-  alertStyle.type = 'text/css';
-  document.head.appendChild(alertStyle);
-  
 }
 
 function sortTrigger() {

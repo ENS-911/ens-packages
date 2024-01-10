@@ -1,3 +1,24 @@
-.alertBar {
-    display: none;
+@keyframes scrollText {
+    from { transform: translateX(100%); }
+    to { transform: translateX(-100%); }
+}
+
+@keyframes backgroundColorChange {
+    0% { background-color: white; }
+    50% { background-color: red; }
+    100% { background-color: white; }
+}
+
+.marquee {
+    overflow: hidden;
+    white-space: nowrap;
+    background-color: white;
+    animation: backgroundColorChange 2s ease-in-out infinite;
+}
+
+.marquee-content {
+    padding: 10px 0;
+    display: inline-block;
+    white-space: nowrap;
+    /* Animation added dynamically */
 }
