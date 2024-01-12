@@ -6,6 +6,7 @@ function weatherAlertTrigger() {
         function createMarquee(warning) {
             const marquee = document.createElement('div');
             marquee.className = 'marquee';
+            rootDiv.appendChild(marquee);
           
             warning.forEach((line, index) => {
                 const textElement = document.createElement('div');
@@ -27,6 +28,10 @@ function weatherAlertTrigger() {
         document.head.appendChild(alertStyle);
 
         createMarquee(warning);
+    }
+
+    function weatherBarTrigger() {
+        
     }
 }
 

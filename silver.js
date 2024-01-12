@@ -16,9 +16,10 @@ let dayCount = "";
 let yearCount = "";
 let countyCords = "";
 let weatherData = "";
-let countyCode = "TNC065";
+//let countyCode = "TNC065";
 //let countyCode = "AKC185";
-//let countyCode = "GAC127";
+let countyCode = "GAC127";
+//let countyCode = "AZC019";
 let alertStatus = "off";
 let warning = [];
 let warningData = [];
@@ -458,6 +459,7 @@ function warningBoxes() {
         
 }
 countsLoad();
+tableTrigger()
 }
 
 async function countsLoad() {
