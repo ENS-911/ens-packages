@@ -31,8 +31,22 @@ function weatherAlertTrigger() {
     }
 
     function weatherBarTrigger() {
-        
+        const WeatherBar = document.createElement('script');
+  
+        WeatherBar.src = `https://ensloadout.911emergensee.com/ens-packages/components/weather-bar/weatherbar0.js`;
+
+        document.head.appendChild(WeatherBar);
+          
+        WeatherBar.onload = function () {
+            console.log('External WeatherBar loaded successfully');
+        };
+          
+        WeatherBar.onerror = function () {
+            console.error('Error loading external WeatherBar');
+        };
     }
+
+    weatherBarTrigger()
 }
 
 weatherAlertTrigger();
