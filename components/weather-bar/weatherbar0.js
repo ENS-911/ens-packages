@@ -1,4 +1,5 @@
 let curWeatherData = ""
+let vis = "visible"
 
 const weatherStyle = document.createElement('link');
 weatherStyle.href = 'https://ensloadout.911emergensee.com/ens-packages/components/weather-bar/weatherbar0.css';
@@ -18,9 +19,7 @@ const controlButtP = document.createElement('p');
 controlButt.appendChild(controlButtP);
 controlButtP.innerText = "Hide Weather";
 
-
 document.getElementById('controlButt').addEventListener('click', function() {
-    let vis = "visible"
     var layer = map.getLayer('simple-tiles');
     if (layer) {
     var visibility = map.getLayoutProperty('simple-tiles', 'visibility');
@@ -30,7 +29,7 @@ document.getElementById('controlButt').addEventListener('click', function() {
             map.setLayoutProperty('simple-tiles', 'visibility', 'visible');
             controlButtP.innerText = "Hide Weather";
             vis = "visible"
-        } else {
+        } else if (vis == 'visible') {
             map.setLayoutProperty('simple-tiles', 'visibility', 'none');
             controlButtP.innerText = "Show Weather";
             vis = "none"
