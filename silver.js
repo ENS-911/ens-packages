@@ -10,6 +10,7 @@ mapStyle.type = 'text/css';
 document.head.appendChild(mapStyle);
 
 //Data Store
+let map;
 let data = "";
 let nowCount = "";
 let dayCount = "";
@@ -23,6 +24,9 @@ let countyCode = "TNC065";
 let alertStatus = "off";
 let warning = [];
 let warningData = [];
+let latitude = "";
+let longitude = "";
+let centcord = "";
 //End Data Store
 
 while (rootDiv.firstChild) {
@@ -71,11 +75,21 @@ async function countyCordsGrab() {
 
         countyData = await response.json();
         countyCords = countyData.geometry.coordinates;
-        console.log(countyCords);
+        console.log(countyData);
+
+        centcord = findCentroid(countyCords);
+        console.log('county center cords '+ centcord);
+
+        
 
     } catch (error) {
         console.error('Error fetching client information:', error.message);
     }
+    let centcordstr = String(centcord);
+    let parts = centcordstr.split(',');
+
+    longitude = parseFloat(parts[0]);
+    latitude = parseFloat(parts[1]);
     countyWeatherGrab()
 }
 
@@ -101,10 +115,10 @@ async function countyWeatherGrab() {
 function mapRun() {
   mapboxgl.accessToken = 'pk.eyJ1Ijoid29tYmF0MTk3MiIsImEiOiJjbDdycmxjNXIwaTJ1M3BudXB2ZTZoZm1tIn0.v-NAvl8Ba0yPtAtxOt9iTg';
 
-  var map = new mapboxgl.Map({
+  map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/standard',
-    center: [data[0].longitude, data[0].latitude],
+    center: [longitude, latitude],
     zoom: 10
   });
 
@@ -308,22 +322,6 @@ function mapRun() {
                         console.error(`Error adding fill layer ${layerIdFill}:`, e);
                     }
 
-                    function findCentroid(coordsArray) {
-                        let latSum = 0;
-                        let lonSum = 0;
-                        let count = 0;
-                    
-                        coordsArray.forEach(coords => {
-                            coords.forEach(coord => {
-                                latSum += coord[0]; // Assuming coord[0] is latitude
-                                lonSum += coord[1]; // Assuming coord[1] is longitude
-                                count++;
-                            });
-                        });
-                    
-                        return [latSum / count, lonSum / count];
-                    }
-
                     const centroid = findCentroid(warning.geometry.coordinates);
                     console.log('Centroid:', centroid);
     
@@ -371,10 +369,13 @@ function mapRun() {
                     "tiles": ["https://tile.openweathermap.org/map/precipitation/{z}/{x}/{y}.png?appid=bfa689a00c0a5864039c9e7396f1e745"],
                     "tileSize": 256
                 },
+                "layout": {
+                    "visibility": "visible" // or "none" if you want it hidden initially
+                },
             });
+            weatherActivate();
         });
     }
-    
 }
 
 function weather() {
@@ -419,9 +420,7 @@ function weather() {
     console.log("No warnings")
     alertStatus == "off"
 }
-if (alertStatus != "off") {
-    weatherActivate();
-}
+
 
 function warningBoxes() {
     if (!map || typeof map.addLayer !== 'function') {
@@ -481,17 +480,11 @@ async function countsLoad() {
 
 function countTrigger() {
   const script = document.createElement('script');
-          
-
   script.src = `https://ensloadout.911emergensee.com/ens-packages/components/count-bars/cb0.js`;
-          
-
   document.head.appendChild(script);
-          
   script.onload = function () {
     console.log('External script loaded successfully');
   };
-          
   script.onerror = function () {
     console.error('Error loading external script');
   };
@@ -509,17 +502,11 @@ function sortTrigger() {
 
 function tableTrigger() {
     const script = document.createElement('script');
-          
-
     script.src = `https://ensloadout.911emergensee.com/ens-packages/components/live-tables/lt0.js`;
-            
-  
     document.head.appendChild(script);
-            
     script.onload = function () {
       console.log('Table script loaded successfully');
     };
-            
     script.onerror = function () {
       console.error('Error loading table script');
     };
@@ -533,16 +520,28 @@ function tableTrigger() {
 
 function weatherActivate() {
     const WeatherActivation = document.createElement('script');
-  
     WeatherActivation.src = `https://ensloadout.911emergensee.com/ens-packages/components/weatherAlertTrigger.js`;
-
     document.head.appendChild(WeatherActivation);
-          
     WeatherActivation.onload = function () {
         console.log('External WeatherActivation loaded successfully');
     };
-          
     WeatherActivation.onerror = function () {
         console.error('Error loading external WeatherActivation');
     };
+}
+
+function findCentroid(coordsArray) {
+    let latSum = 0;
+    let lonSum = 0;
+    let count = 0;
+
+    coordsArray.forEach(coords => {
+        coords.forEach(coord => {
+            latSum += coord[0]; // Assuming coord[0] is latitude
+            lonSum += coord[1]; // Assuming coord[1] is longitude
+            count++;
+        });
+    });
+
+    return [latSum / count, lonSum / count];
 }
