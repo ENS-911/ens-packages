@@ -6,10 +6,10 @@ countWrap.className = "countWrap";
 
 const dayBlock = document.createElement("h3");
 countWrap.appendChild(dayBlock);
-dayBlock.innerText = `Day Total: ${dayCount}`;
+dayBlock.innerText = `DAILY TOTAL INCIDENTS: ${dayCount}`;
 dayBlock.className = "countItem";
 
 const yearBlock = document.createElement("h3");
 countWrap.appendChild(yearBlock);
-yearBlock.innerText = `Year Total: ${yearCount}`;
+yearBlock.innerText = `YEARLY INCIDENTS: ${yearCount}`;
 yearBlock.className = "countItem";
