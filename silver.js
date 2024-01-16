@@ -17,9 +17,9 @@ let dayCount = "";
 let yearCount = "";
 let countyCords = "";
 let weatherData = "";
-let countyCode = "TNC065";
+//let countyCode = "TNC065";
 //let countyCode = "AKC185";
-//let countyCode = "GAC127";
+let countyCode = "GAC127";
 //let countyCode = "AZC019";
 let alertStatus = "off";
 let warning = [];
@@ -240,10 +240,8 @@ function mapRun() {
             map.getCanvas().style.cursor = '';
         });
     });
-    console.log("cord count = "+ countyCords.length)
     map.on('load', function () {
         if (countyCords.length === 1) {
-            console.log("single map run")
         map.addLayer({
             'id': 'polygon-outline',
             'type': 'line',
@@ -264,7 +262,6 @@ function mapRun() {
             }
         });
         } else {
-            console.log("multi map run")
             let i = 1
             countyCords.forEach(singleCord => {
                 map.addLayer({
@@ -385,7 +382,7 @@ function weather() {
             const urlGroups = {};
         
             jsonData.forEach(item => {
-                const url = item.id; // Assuming 'id' is the field name where URL is stored
+                const url = item.id;
                 const basePart = url.match(/(https:\/\/api\.weather\.gov\/alerts\/urn:oid:2\.49\.0\.1\.840\.0\.[^.]+)\./)[1];
                 const numericPart = parseInt(url.split('.').slice(-2, -1), 10); // Extract the second last part
         
@@ -463,7 +460,7 @@ tableTrigger()
 
 async function countsLoad() {
     try {
-        const response = await fetch(`https://matrix.911-ens-services.com/count/${clientID}`); // Replace with your server URL
+        const response = await fetch(`https://matrix.911-ens-services.com/count/${clientID}`);
         const countData = await response.json();
 
         console.log(countData)
@@ -531,10 +528,25 @@ function weatherActivate() {
 }
 
 function findCentroid(coordsArray) {
+    console.log(coordsArray.length);
     let latSum = 0;
     let lonSum = 0;
     let count = 0;
 
+    if (coordsArray.length > 1) {
+        console.log('multi center')
+        coordsArray.forEach(coordBlock => {
+        coordBlock.forEach(coords => {
+            coords.forEach(coord => {
+                latSum += coord[0]; // Assuming coord[0] is latitude
+                lonSum += coord[1]; // Assuming coord[1] is longitude
+                count++;
+            });
+        });
+    })
+
+    } else {
+        console.log('single center')
     coordsArray.forEach(coords => {
         coords.forEach(coord => {
             latSum += coord[0]; // Assuming coord[0] is latitude
@@ -542,6 +554,7 @@ function findCentroid(coordsArray) {
             count++;
         });
     });
+}
 
     return [latSum / count, lonSum / count];
 }
