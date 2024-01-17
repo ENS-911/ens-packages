@@ -17,9 +17,9 @@ let dayCount = "";
 let yearCount = "";
 let countyCords = "";
 let weatherData = "";
-//let countyCode = "TNC065";
+let countyCode = "TNC065";
 //let countyCode = "AKC185";
-let countyCode = "GAC127";
+//let countyCode = "GAC127";
 //let countyCode = "AZC019";
 let alertStatus = "off";
 //let alertStatus = "Warning";
@@ -116,133 +116,97 @@ async function countyWeatherGrab() {
 }
 
 function mapRun() {
-  mapboxgl.accessToken = 'pk.eyJ1Ijoid29tYmF0MTk3MiIsImEiOiJjbDdycmxjNXIwaTJ1M3BudXB2ZTZoZm1tIn0.v-NAvl8Ba0yPtAtxOt9iTg';
+    mapboxgl.accessToken = 'pk.eyJ1Ijoid29tYmF0MTk3MiIsImEiOiJjbDdycmxjNXIwaTJ1M3BudXB2ZTZoZm1tIn0.v-NAvl8Ba0yPtAtxOt9iTg';
 
-  map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/standard',
-    center: [longitude, latitude],
-    zoom: 10
-  });
-
-
-  // Add full-screen control
-  map.addControl(new mapboxgl.FullscreenControl());
-
-  data.forEach(function (point) {
-    var marker = new mapboxgl.Marker()
-      .setLngLat([point.longitude, point.latitude])
-      .setPopup(new mapboxgl.Popup().setHTML(`<h3>${point.battalion}</h3><p>${point.type}</p>`))
-      .addTo(map);
-  });
-
-  // Add marker clustering
-  map.on('load', function () {
-    map.addSource('markers', {
-      type: 'geojson',
-      data: {
-        type: 'FeatureCollection',
-        features: [
-          // Your GeoJSON features go here
-          {
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: [-81.5367365, 35.081401]
-            },
-            properties: {
-              title: 'Your Marker Title',
-              description: 'Marker description'
-            }
-          }
-        ]
-      }
+    map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/standard',
+        center: [longitude, latitude],
+        zoom: 10
     });
 
-    map.addLayer({
-      id: 'clusters',
-      type: 'circle',
-      source: 'markers',
-      filter: ['has', 'point_count'],
-      paint: {
-        'circle-color': [
-          'step',
-          ['get', 'point_count'],
-          '#51bbd6',
-          100,
-          '#f1f075',
-          750,
-          '#f28cb1'
-        ],
-        'circle-radius': [
-          'step',
-          ['get', 'point_count'],
-          20,
-          100,
-          30,
-          750,
-          40
-        ]
-      }
-    });
 
-    map.addLayer({
-      id: 'cluster-count',
-      type: 'symbol',
-      source: 'markers',
-      filter: ['has', 'point_count'],
-      layout: {
-        'text-field': '{point_count_abbreviated}',
-        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-        'text-size': 12
-      }
-    });
+    // Add full-screen control
+    map.addControl(new mapboxgl.FullscreenControl());
 
-    map.addLayer({
-      id: 'unclustered-point',
-      type: 'circle',
-      source: 'markers',
-      filter: ['!', ['has', 'point_count']],
-      paint: {
-        'circle-color': '#11b4da',
-        'circle-radius': 6,
-        'circle-stroke-width': 1,
-        'circle-stroke-color': '#fff'
-      }
-    });
+    data.forEach(function (point) {
+        let i = 1
 
-        // Add popups
-        map.on('click', 'clusters', function (e) {
-            var features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
-            var clusterId = features[0].properties.cluster_id;
-            map.getSource('markers').getClusterExpansionZoom(clusterId, function (err, zoom) {
-                if (err) return;
+        if (point.location.includes('-')) {
+            // Use a regular expression to extract the start number, end number, and street name
+            const match = point.location.match(/(\d+)-(\d+)\s+(.*)/);
+            if (match) {
+                const [_, startNumber, endNumber, streetName] = match;
 
-                map.easeTo({
-                    center: features[0].geometry.coordinates,
-                    zoom: zoom
+                let addressSet = []
+                // Create two separate addresses
+                const address1 = `${startNumber} ${streetName}, ${point.db_state}`;
+                const address2 = `${endNumber} ${streetName}, ${point.db_state}`;
+                console.log("Address 1:", address1);
+                console.log("Address 2:", address2);
+                addressSet.push(address1);
+                addressSet.push(address2);
+
+                let twoPoints = [];
+
+                addressSet.forEach(function (setPoint) {
+                    var url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(setPoint) + '.json?access_token=' + mapboxgl.accessToken;
+                    fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        var coordinates = data.features[0].center;
+                        twoPoints.push(coordinates);
+                    })
+                    .catch(err => console.error(err));
+
                 });
-            });
-        });
+                console.log('2P '+twoPoints);
 
-        map.on('click', 'unclustered-point', function (e) {
-            var coordinates = e.features[0].geometry.coordinates.slice();
-            var description = e.features[0].properties.description;
+                twoPoints.forEach(function(coord) {
+                    new mapboxgl.Marker()
+                    .setLngLat(coord)
+                    .addTo(map);
+                });
+              
+                // Add a line connecting the markers
+                map.on('load', function () {
+                    map.addSource(`route${i}`, {
+                        'type': 'geojson',
+                        'data': {
+                            'type': 'Feature',
+                            'properties': {},
+                            'geometry': {
+                                'type': 'LineString',
+                                'coordinates': twoPoints
+                            }
+                        }
+                    });
+              
+                    map.addLayer({
+                        'id': `route${i}`,
+                        'type': 'line',
+                        'source': `route${i}`,
+                        'layout': {
+                            'line-join': 'round',
+                            'line-cap': 'round'
+                        },
+                        'paint': {
+                            'line-color': 'orange',
+                            'line-width': 6
+                        }
+                    });
+                });
+            }
+        }
 
-            new mapboxgl.Popup()
-            .setLngLat(coordinates)
-            .setHTML(description)
-            .addTo(map);
-        });
+        i++;
 
-        map.on('mouseenter', 'clusters', function () {
-            map.getCanvas().style.cursor = 'pointer';
-        });
-
-        map.on('mouseleave', 'clusters', function () {
-            map.getCanvas().style.cursor = '';
-        });
+        var marker = new mapboxgl.Marker()
+        .setLngLat([point.longitude, point.latitude])
+        .setPopup(new mapboxgl.Popup().setHTML(`<h3>${point.battalion}</h3><p>${point.type}</p>`))
+        .addTo(map);
     });
+
     map.on('load', function () {
         if (countyCords.length === 1) {
         map.addLayer({
@@ -397,7 +361,7 @@ function weather() {
             return Object.values(urlGroups).map(group => group.object);
         }
         const highestValueObjects = extractHighestValueObjects(weatherData.features);
-        console.log(highestValueObjects);
+        console.log('HV '+highestValueObjects);
 
         highestValueObjects.forEach(function(item) {
     // Check if the word "Warning" is in the value of the "event" key
