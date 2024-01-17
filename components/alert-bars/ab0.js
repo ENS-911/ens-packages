@@ -15,8 +15,6 @@ function createMarquee(warning) {
   dropBox.appendChild(marquee);
 }
 
-// Example usage
-const lines = ["First line of text", "Second line of text", "Third line of text"];
 createMarquee(warning);
 
   tableTrigger()

@@ -17,15 +17,16 @@ let dayCount = "";
 let yearCount = "";
 let countyCords = "";
 let weatherData = "";
-let countyCode = "TNC065";
+//let countyCode = "TNC065";
 //let countyCode = "AKC185";
-//let countyCode = "GAC127";
+let countyCode = "GAC127";
 //let countyCode = "AZC019";
-//let alertStatus = "off";
-let alertStatus = "Warning";
-//let warning = [];
-let warning = ["This is a test of the ENS alert system"];
+let alertStatus = "off";
+//let alertStatus = "Warning";
+let warning = [];
+//let warning = ["This is a test of the ENS alert system"];
 let warningData = [];
+let watch = "";
 let latitude = "";
 let longitude = "";
 let centcord = "";
@@ -409,6 +410,7 @@ function weather() {
         if (alertStatus == "off") {
             alertStatus = "Watch"
         }
+        watch.push(item.properties.headline);
         console.log("Watch found in event:", item.properties.event); 
     } else {
         console.log("No Warning in event:", item.properties.event);

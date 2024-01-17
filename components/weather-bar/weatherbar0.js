@@ -39,6 +39,16 @@ document.getElementById('controlButt').addEventListener('click', function() {
     }
 });
 
+if (alertStatus == "Watch") {
+    const watchBar = document.createElement('div');
+    weatherBarWrap.appendChild(watchBar);
+
+    const watchBarP = document.createElement('p');
+    watchBar.appendChild(watchBarP);
+
+    watchBarP.innerText = `${watch}`;
+}
+
 const url = `https://api.weather.gov/points/${latitude},${longitude}`;
 
 // Fetch the grid point URL from NWS
@@ -64,6 +74,3 @@ fetch(url)
         tempBoxP.innerText = `Current Temp ${curWeatherData.temperature}F`;
     })
     .catch(error => console.error('Error:', error));
-
-
-
