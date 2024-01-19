@@ -18,9 +18,6 @@ let yearCount = "";
 let countyCords = "";
 let weatherData = "";
 let countyCode = "";
-//let countyCode = "AKC185";
-//let countyCode = "GAC127";
-//let countyCode = "AZC019";
 let alertStatus = "off";
 //let alertStatus = "Warning";
 let warning = [];
@@ -65,26 +62,7 @@ async function dataGrab() {
     }
 }
 
-async function countyCordsGrab() {
-    try {
-        const response = await fetch(`https://api.weather.gov/zones/county/${countyCode}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        countyData = await response.json();
-        countyCords = countyData.geometry.coordinates;
-        console.log(countyData);
-        centcord = findCentroid(countyCords);
-        console.log('county center cords '+ centcord);
-    } catch (error) {
-        console.error('Error fetching client information:', error.message);
-    }
-    let centcordstr = String(centcord);
-    let parts = centcordstr.split(',');
-    longitude = parseFloat(parts[0]);
-    latitude = parseFloat(parts[1]);
-    countyWeatherGrab()
-}
+
 
 async function countyWeatherGrab() {
     try {
@@ -106,7 +84,7 @@ async function countyWeatherGrab() {
 
 function weather() {
     if (weatherData.features && weatherData.features.length > 0) {
-        jsonData.forEach(function(item) {
+        data.forEach(function(item) {
             if (item.properties.event && item.properties.event.includes("Warning")) {
                 alertStatus = "Warning";
                 warningData.push(item);
@@ -128,36 +106,6 @@ function weather() {
     }
 }
 
-function warningBoxes() {
-    let i = 1
-    warningData.forEach(warning => {
-        if (warning.geometry != null) {
-            const warnCoord = [warning.geometry.coordinates];
-            console.log("warnCoords " + warnCoord)
-            map.addLayer({
-                'id': `warning-outline${i}`,
-                'type': 'line',
-                'source': {
-                    'type': 'geojson',
-                    'data': {
-                        'type': 'Feature',
-                        'geometry': {
-                            'type': 'Polygon',
-                            'coordinates': warnCoord,
-                        }
-                    }
-                },
-                'layout': {},
-                'paint': {
-                    'line-color': '#FF0000',
-                    'line-width': 2
-                }
-            });
-            i++
-        }
-    })  
-}
-
 countsLoad();
 tableTrigger()
 
@@ -166,12 +114,8 @@ async function countsLoad() {
     try {
         const response = await fetch(`https://matrix.911-ens-services.com/count/${clientID}`);
         const countData = await response.json();
-
-        console.log(countData)
-
         dayCount = countData.currentDateCount;
         yearCount = countData.totalCount;
-
         countTrigger();
       } catch (error) {
         console.error('Error fetching counts:', error);
@@ -189,7 +133,6 @@ function countTrigger() {
   script.onerror = function () {
     console.error('Error loading external script');
   };
-
   const countStyle = document.createElement('link');
   countStyle.href = 'https://ensloadout.911emergensee.com/ens-packages/components/count-bars/cb0.css';
   countStyle.rel = 'stylesheet';
@@ -229,36 +172,4 @@ function weatherActivate() {
     WeatherActivation.onerror = function () {
         console.error('Error loading external WeatherActivation');
     };
-}
-
-function findCentroid(coordsArray) {
-    console.log(coordsArray.length);
-    let latSum = 0;
-    let lonSum = 0;
-    let count = 0;
-
-    if (coordsArray.length > 1) {
-        console.log('multi center')
-        coordsArray.forEach(coordBlock => {
-        coordBlock.forEach(coords => {
-            coords.forEach(coord => {
-                latSum += coord[0]; // Assuming coord[0] is latitude
-                lonSum += coord[1]; // Assuming coord[1] is longitude
-                count++;
-            });
-        });
-    })
-
-    } else {
-        console.log('single center')
-    coordsArray.forEach(coords => {
-        coords.forEach(coord => {
-            latSum += coord[0]; // Assuming coord[0] is latitude
-            lonSum += coord[1]; // Assuming coord[1] is longitude
-            count++;
-        });
-    });
-}
-
-    return [latSum / count, lonSum / count];
 }
