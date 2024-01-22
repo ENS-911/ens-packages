@@ -11,7 +11,7 @@ document.head.appendChild(mapStyle);
 
 //Data Store
 let map;
-let data = "";
+let activeData = "";
 let nowCount = "";
 let dayCount = "";
 let yearCount = "";
@@ -53,8 +53,10 @@ async function dataGrab() {
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        data = await response.json();
-        countyCode = data.nws;
+        activeData = await response.json();
+        console.log(activeData)
+        countyCode = nwsId;
+        console.log(countyCode)
         countsLoad(); 
     } catch (error) {
         console.error('Error fetching client information:', error.message);
@@ -165,7 +167,7 @@ function weather() {
     }
 }
 
-tableTrigger()
+//tableTrigger()
 
 
 

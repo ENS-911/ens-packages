@@ -12,7 +12,7 @@ function mapRun() {
     // Add full-screen control
     map.addControl(new mapboxgl.FullscreenControl());
 
-    data.forEach(function (point) {
+    activeData.forEach(function (point) {
         let i = 1
 
         if (point.location.includes('-')) {
