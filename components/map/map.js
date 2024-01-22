@@ -224,3 +224,5 @@ function mapRun() {
         });
     }
 }
+
+mapRun();
