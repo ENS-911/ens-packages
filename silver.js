@@ -88,19 +88,7 @@ function countTrigger() {
     countStyle.rel = 'stylesheet';
     countStyle.type = 'text/css';
     document.head.appendChild(countStyle);
-    mapLoad();
-}
-
-function mapLoad() {
-    const mapScript = document.createElement('script');
-    mapScript.src = `https://ensloadout.911emergensee.com/ens-packages/components/map/map.js`;
-    document.head.appendChild(mapScript);
-    mapScript.onload = function () {
-        console.log('External map loaded successfully');
-    };
-    mapScript.onerror = function () {
-        console.error('Error loading external map');
-    };
+    countyCordsGrab();
 }
 
 async function countyCordsGrab() {
@@ -119,8 +107,22 @@ async function countyCordsGrab() {
     let parts = centcordstr.split(',');
     longitude = parseFloat(parts[0]);
     latitude = parseFloat(parts[1]);
-    mapRun();
+    mapLoad();
 }
+
+function mapLoad() {
+    const mapScript = document.createElement('script');
+    mapScript.src = `https://ensloadout.911emergensee.com/ens-packages/components/map/map.js`;
+    document.head.appendChild(mapScript);
+    mapScript.onload = function () {
+        console.log('External map loaded successfully');
+    };
+    mapScript.onerror = function () {
+        console.error('Error loading external map');
+    };
+}
+
+
 
 async function countyWeatherGrab() {
     try {
@@ -199,4 +201,32 @@ function weatherActivate() {
     WeatherActivation.onerror = function () {
         console.error('Error loading external WeatherActivation');
     };
+}
+
+/* Helpers */
+
+function findCentroid(coordsArray) {
+    let latSum = 0;
+    let lonSum = 0;
+    let count = 0;
+    if (coordsArray.length > 1) {
+        coordsArray.forEach(coordBlock => {
+        coordBlock.forEach(coords => {
+            coords.forEach(coord => {
+                latSum += coord[0];
+                lonSum += coord[1];
+                count++;
+            });
+        });
+    })
+    } else {
+        coordsArray.forEach(coords => {
+        coords.forEach(coord => {
+            latSum += coord[0];
+            lonSum += coord[1];
+            count++;
+        });
+    });
+}
+    return [latSum / count, lonSum / count];
 }
