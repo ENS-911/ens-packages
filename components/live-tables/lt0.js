@@ -4,7 +4,7 @@ const tableWrap = document.createElement("table");
 tableDiv.appendChild(tableWrap);
 tableWrap.className = "tableWrap";
 
-data.forEach(function (bar) {
+activeData.forEach(function (bar) {
     const tRow = document.createElement("tr");
     tableWrap.appendChild(tRow);
 

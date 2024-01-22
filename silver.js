@@ -167,10 +167,6 @@ function weather() {
     }
 }
 
-//tableTrigger()
-
-
-
 function sortTrigger() {
   console.log('Sort Triggered');
 }

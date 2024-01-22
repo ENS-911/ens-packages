@@ -8,6 +8,7 @@ function mapRun() {
         zoom: 10
     });
 
+    countyWeatherGrab();
 
     // Add full-screen control
     map.addControl(new mapboxgl.FullscreenControl());
@@ -223,6 +224,7 @@ function mapRun() {
             weatherActivate();
         });
     }
+    tableTrigger()
 }
 
 mapRun();
