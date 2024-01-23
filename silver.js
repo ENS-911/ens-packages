@@ -145,7 +145,7 @@ async function countyWeatherGrab() {
 
 function weather() {
     if (weatherData.features && weatherData.features.length > 0) {
-        activeData.forEach(function(item) {
+        weatherData.features.forEach(function(item) {
             if (item.properties.event && item.properties.event.includes("Warning")) {
                 alertStatus = "Warning";
                 warningData.push(item);
