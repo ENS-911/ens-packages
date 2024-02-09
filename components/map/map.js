@@ -13,83 +13,129 @@ function mapRun() {
     // Add full-screen control
     map.addControl(new mapboxgl.FullscreenControl());
 
-    activeData.forEach(function (point) {
-        let i = 1
+    const icons = {
+        'Fire': 'https://ensloadout.911emergensee.com/ens-packages/icopacks/0/fire.png',
+        'Law': 'https://ensloadout.911emergensee.com/ens-packages/icopacks/0/police.png',
+        'EMS': 'https://ensloadout.911emergensee.com/ens-packages/icopacks/0/ems.png',
+        'Road Closure': 'https://ensloadout.911emergensee.com/ens-packages/icopacks/0/roadclosure.png'
+      };
+      
+      const roadClosureIconUrl = 'https://ensloadout.911emergensee.com/ens-packages/icopacks/0/roadclosure.png';
 
+      activeData.forEach((point, index) => {
         if (point.location.includes('-')) {
-            // Use a regular expression to extract the start number, end number, and street name
             const match = point.location.match(/(\d+)-(\d+)\s+(.*)/);
             if (match) {
                 const [_, startNumber, endNumber, streetName] = match;
-
-                let addressSet = []
-                // Create two separate addresses
-                const address1 = `${startNumber} ${streetName}, ${point.db_city} ${point.db_state}`;
-                const address2 = `${endNumber} ${streetName}, ${point.db_city} ${point.db_state}`;
-                console.log("Address 1:", address1);
-                console.log("Address 2:", address2);
-                addressSet.push(address1);
-                addressSet.push(address2);
-
-                let twoPoints = [];
-
-                addressSet.forEach(function (setPoint) {
-                    var url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(setPoint) + '.json?access_token=' + mapboxgl.accessToken;
-                    fetch(url)
+                const street = streetName.trim();
+                const cityState = `${point.db_city}, ${point.db_state}`;
+                const startAddress = `${startNumber} ${street}, ${cityState}`;
+                const endAddress = `${endNumber} ${street}, ${cityState}`;
+    
+                // Calculate intermediate address numbers
+                let intermediateAddresses = [];
+                for (let num = parseInt(startNumber, 10) + 100; num < parseInt(endNumber, 10); num += 100) {
+                    intermediateAddresses.push(`${num} ${street}, ${cityState}`);
+                }
+    
+                // Geocode the start, intermediate, and end addresses
+                let addressesToGeocode = [startAddress, ...intermediateAddresses, endAddress];
+                Promise.all(addressesToGeocode.map(address => 
+                    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}`)
                     .then(response => response.json())
                     .then(data => {
-                        var coordinates = data.features[0].center;
-                        twoPoints.push(coordinates);
+                        if (data.features && data.features.length > 0) {
+                            return data.features[0].center;
+                        } else {
+                            console.error('No geocoding result for address');
+                            return null; // Or handle this case as appropriate
+                        }
                     })
-                    .catch(err => console.error(err));
-
-                });
-                console.log('2P '+twoPoints);
-
-                twoPoints.forEach(function(coord) {
-                    new mapboxgl.Marker()
-                    .setLngLat(coord)
-                    .addTo(map);
-                });
-              
-                // Add a line connecting the markers
-                map.on('load', function () {
-                    map.addSource(`route${i}`, {
-                        'type': 'geojson',
-                        'data': {
-                            'type': 'Feature',
-                            'properties': {},
-                            'geometry': {
-                                'type': 'LineString',
-                                'coordinates': twoPoints
+                )).then(allPoints => {
+                    // Ensure all geocoded points are valid
+                    const validPoints = allPoints.filter(point => point !== undefined);
+                    if (validPoints.length < 2) {
+                        console.error('Geocoding failed for some addresses');
+                        return; // Exit if not enough valid points for a route
+                    }
+    
+                    // Construct the waypoints string for the Directions API
+                    const waypointsString = validPoints.slice(1, -1).map(coord => coord.join(',')).join(';');
+    
+                    // Fetch the route with intermediate waypoints
+                    const directionsUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${validPoints[0].join(',')};${waypointsString};${validPoints[validPoints.length - 1].join(',')}?geometries=geojson&access_token=${mapboxgl.accessToken}&steps=true`;
+    
+                    fetch(directionsUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.routes && data.routes.length > 0) {
+                                const route = data.routes[0].geometry;
+                        
+                                // Proceed with adding/updating the route on the map
+                            } else {
+                                console.error('No routes found from Directions API');
+                                // Handle the absence of routes as needed
                             }
-                        }
-                    });
-              
-                    map.addLayer({
-                        'id': `route${i}`,
-                        'type': 'line',
-                        'source': `route${i}`,
-                        'layout': {
-                            'line-join': 'round',
-                            'line-cap': 'round'
-                        },
-                        'paint': {
-                            'line-color': 'orange',
-                            'line-width': 6
-                        }
-                    });
-                });
+    
+                            // Add or update the route on the map
+                            const routeId = `route${index}`;
+                            if (map.getSource(routeId)) {
+                                map.getSource(routeId).setData(route);
+                            } else {
+                                map.addSource(routeId, {
+                                    'type': 'geojson',
+                                    'data': route
+                                });
+    
+                                map.addLayer({
+                                    'id': routeId,
+                                    'type': 'line',
+                                    'source': routeId,
+                                    'layout': {
+                                        'line-join': 'round',
+                                        'line-cap': 'round'
+                                    },
+                                    'paint': {
+                                        'line-color': '#ff7e5f',
+                                        'line-width': 4
+                                    }
+                                });
+                            }
+    
+                            // Add custom markers for start, intermediate, and end points
+                            validPoints.forEach(coord => {
+                                const el = document.createElement('div');
+                                el.className = 'custom-marker';
+                                el.style.backgroundImage = `url(${roadClosureIconUrl})`; // Define this variable based on your icon selection logic
+                                el.style.width = '30px';
+                                el.style.height = '30px';
+                                el.style.backgroundSize = 'cover';
+    
+                                new mapboxgl.Marker(el)
+                                    .setLngLat(coord)
+                                    .addTo(map);
+                            });
+                        })
+                        .catch(err => console.error('Error fetching directions:', err));
+                }).catch(err => console.error('Error geocoding addresses:', err));
             }
-        }
-
-        i++;
-
-        var marker = new mapboxgl.Marker()
-        .setLngLat([point.longitude, point.latitude])
-        .setPopup(new mapboxgl.Popup().setHTML(`<h3>${point.battalion}</h3><p>${point.type}</p>`))
-        .addTo(map);
-    });
+          } else {
+              const iconType = point.type; // Adjust this according to how you determine the icon type
+              const iconUrl = icons[iconType] || icons['Default']; // Provide a default icon URL if necessary
+      
+              const el = document.createElement('div');
+              el.className = 'custom-marker';
+              el.style.backgroundImage = `url(${iconUrl})`;
+              el.style.width = '50px';
+              el.style.height = '50px';
+              el.style.backgroundSize = 'cover';
+      
+              new mapboxgl.Marker(el)
+                  .setLngLat([point.longitude, point.latitude])
+                  .setPopup(new mapboxgl.Popup().setHTML(`<h3>${point.battalion}</h3><p>${point.type}</p>`))
+                  .addTo(map);
+          }
+      });
 
     map.on('load', function () {
         if (countyCords.length === 1) {
