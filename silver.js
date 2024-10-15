@@ -1,208 +1,164 @@
-const mapScript = document.createElement('script');
-mapScript.src = 'https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js';
-document.head.appendChild(mapScript);
-mapScript.onload = dataGrab;
-
-const mapStyle = document.createElement('link');
-mapStyle.href = 'https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css';
-mapStyle.rel = 'stylesheet';
-mapStyle.type = 'text/css';
-document.head.appendChild(mapStyle);
-
-//Data Store
-let map;
-let activeData = "";
-let nowCount = "";
-let dayCount = "";
-let yearCount = "";
-let countyCords = "";
-let weatherData = "";
-let countyCode = "";
-let alertStatus = "off";
-//let alertStatus = "Warning";
-let warning = [];
-//let warning = ["This is a test of the ENS alert system"];
-let warningData = [];
-let watch = "";
-let latitude = "";
-let longitude = "";
-let centcord = "";
-//End Data Store
-
-while (rootDiv.firstChild) {
-    rootDiv.removeChild(rootDiv.firstChild);
+// Helper function to load external scripts
+function loadScript(src, callback) {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = callback;
+    script.onerror = () => console.error(`Error loading script: ${src}`);
+    document.head.appendChild(script);
 }
 
+// Helper function to load external stylesheets
+function loadStylesheet(href) {
+    const link = document.createElement('link');
+    link.href = href;
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    document.head.appendChild(link);
+}
+
+// Data Store (use an object for better structure)
+let appState = {
+    map: null,
+    activeData: "",
+    dayCount: "",
+    yearCount: "",
+    countyCords: "",
+    weatherData: "",
+    countyCode: "",
+    alertStatus: "off",
+    warnings: [],
+    warningData: [],
+    watch: [],
+    latitude: "",
+    longitude: "",
+    centcord: ""
+};
+
+// Remove all child elements from rootDiv (optimize with innerHTML)
+rootDiv.innerHTML = "";
+
+// Initialize countBlock and mapArea
 const countBlock = document.createElement("div");
-rootDiv.appendChild(countBlock);
 countBlock.id = 'countBlock';
+rootDiv.appendChild(countBlock);
 
 const mapArea = document.createElement("div");
-rootDiv.appendChild(mapArea);
-mapArea.setAttribute("id", "map");
+mapArea.id = "map";
 mapArea.style.height = "900px";
+rootDiv.appendChild(mapArea);
 
 const tableBlock = document.createElement("div");
-rootDiv.appendChild(tableBlock);
 tableBlock.id = 'tableBlock';
+rootDiv.appendChild(tableBlock);
 
+// Load Mapbox script and styles
+loadScript('https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js', dataGrab);
+loadStylesheet('https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css');
+
+// Fetch and process active data
 async function dataGrab() {
     try {
-        console.log(clientID)
+        console.log(clientID);
         const response = await fetch(`https://matrix.911-ens-services.com/data/${clientID}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        activeData = await response.json();
-        console.log(activeData)
-        countyCode = nwsId;
-        console.log(countyCode)
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        
+        appState.activeData = await response.json();
+        console.log(appState.activeData);
+        appState.countyCode = nwsId;
+        console.log(appState.countyCode);
         countsLoad(); 
     } catch (error) {
         console.error('Error fetching client information:', error.message);
     }
 }
 
+// Fetch and process counts data
 async function countsLoad() {
     try {
         const response = await fetch(`https://matrix.911-ens-services.com/count/${clientID}`);
         const countData = await response.json();
-        dayCount = countData.currentDateCount;
-        yearCount = countData.totalCount;
+        appState.dayCount = countData.currentDateCount;
+        appState.yearCount = countData.totalCount;
         countTrigger();
     } catch (error) {
-        console.error('Error fetching counts:', error);
+        console.error('Error fetching counts:', error.message);
     }
 }
 
+// Trigger external count bar script
 function countTrigger() {
-    const script = document.createElement('script');
-    script.src = `https://ensloadout.911emergensee.com/ens-packages/components/count-bars/cb0.js`;
-    document.head.appendChild(script);
-    script.onload = function () {
-        console.log('External script loaded successfully');
-    };
-    script.onerror = function () {
-        console.error('Error loading external script');
-    };
-    const countStyle = document.createElement('link');
-    countStyle.href = 'https://ensloadout.911emergensee.com/ens-packages/components/count-bars/cb0.css';
-    countStyle.rel = 'stylesheet';
-    countStyle.type = 'text/css';
-    document.head.appendChild(countStyle);
+    loadScript('https://ensloadout.911emergensee.com/ens-packages/components/count-bars/cb0.js');
+    loadStylesheet('https://ensloadout.911emergensee.com/ens-packages/components/count-bars/cb0.css');
     countyCordsGrab();
 }
 
+// Fetch and process county coordinates
 async function countyCordsGrab() {
     try {
-        const response = await fetch(`https://api.weather.gov/zones/county/${countyCode}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        countyData = await response.json();
-        countyCords = countyData.geometry.coordinates;
-        centcord = findCentroid(countyCords);
+        const response = await fetch(`https://api.weather.gov/zones/county/${appState.countyCode}`);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        
+        const countyData = await response.json();
+        appState.countyCords = countyData.geometry.coordinates;
+        appState.centcord = findCentroid(appState.countyCords);
+        const [longitude, latitude] = String(appState.centcord).split(',').map(parseFloat);
+        appState.longitude = longitude;
+        appState.latitude = latitude;
+        mapLoad();
     } catch (error) {
-        console.error('Error fetching client information:', error.message);
+        console.error('Error fetching county coordinates:', error.message);
     }
-    let centcordstr = String(centcord);
-    let parts = centcordstr.split(',');
-    longitude = parseFloat(parts[0]);
-    latitude = parseFloat(parts[1]);
-    mapLoad();
 }
 
+// Load external map script
 function mapLoad() {
-    const mapScript = document.createElement('script');
-    mapScript.src = `https://ensloadout.911emergensee.com/ens-packages/components/map/map.js`;
-    document.head.appendChild(mapScript);
-    mapScript.onload = function () {
+    loadScript('https://ensloadout.911emergensee.com/ens-packages/components/map/map.js', () => {
         console.log('External map loaded successfully');
-    };
-    mapScript.onerror = function () {
-        console.error('Error loading external map');
-    };
+    });
 }
 
-
-
+// Fetch and process weather alerts
 async function countyWeatherGrab() {
     try {
-        const response = await fetch(`https://api.weather.gov/alerts/active?zone=${countyCode}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        countyWeatherData = await response.json();
-        weatherData = countyWeatherData;
-        console.log(weatherData);
+        const response = await fetch(`https://api.weather.gov/alerts/active?zone=${appState.countyCode}`);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        
+        const countyWeatherData = await response.json();
+        appState.weatherData = countyWeatherData;
+        weather();
     } catch (error) {
-        console.error('Error fetching client information:', error.message);
+        console.error('Error fetching weather data:', error.message);
     }
-    weather();
 }
 
-
-
+// Process weather data
 function weather() {
-    if (weatherData.features && weatherData.features.length > 0) {
-        weatherData.features.forEach(function(item) {
-            if (item.properties.event && item.properties.event.includes("Warning")) {
-                alertStatus = "Warning";
-                warningData.push(item);
-                warning.push(item.properties.headline);
-                console.log("Warning found in event:", item.properties.event);
-            } else if (item.properties.event && item.properties.event.includes("Watch")) {
-                if (alertStatus == "off") {
-                    alertStatus = "Watch"
+    if (appState.weatherData.features?.length) {
+        appState.weatherData.features.forEach(item => {
+            if (item.properties.event.includes("Warning")) {
+                appState.alertStatus = "Warning";
+                appState.warningData.push(item);
+                appState.warnings.push(item.properties.headline);
+            } else if (item.properties.event.includes("Watch")) {
+                if (appState.alertStatus === "off") {
+                    appState.alertStatus = "Watch";
                 }
-                watch.push(item.properties.headline);
-                console.log("Watch found in event:", item.properties.event); 
-            } else {
-                console.log("No Warning in event:", item.properties.event);
+                appState.watch.push(item.properties.headline);
             }
         });
     } else {
-        console.log("No warnings")
-        alertStatus == "off"
+        appState.alertStatus = "off";
+        console.log("No warnings");
     }
 }
 
-function sortTrigger() {
-  console.log('Sort Triggered');
-}
-
+// Trigger table script
 function tableTrigger() {
-    const script = document.createElement('script');
-    script.src = `https://ensloadout.911emergensee.com/ens-packages/components/live-tables/lt0.js`;
-    document.head.appendChild(script);
-    script.onload = function () {
-      console.log('Table script loaded successfully');
-    };
-    script.onerror = function () {
-      console.error('Error loading table script');
-    };
-  
-    const tableStyle = document.createElement('link');
-    tableStyle.href = 'https://ensloadout.911emergensee.com/ens-packages/components/live-tables/lt0.css';
-    tableStyle.rel = 'stylesheet';
-    tableStyle.type = 'text/css';
-    document.head.appendChild(tableStyle);
+    loadScript('https://ensloadout.911emergensee.com/ens-packages/components/live-tables/lt0.js');
+    loadStylesheet('https://ensloadout.911emergensee.com/ens-packages/components/live-tables/lt0.css');
 }
 
-function weatherActivate() {
-    const WeatherActivation = document.createElement('script');
-    WeatherActivation.src = `https://ensloadout.911emergensee.com/ens-packages/components/weatherAlertTrigger.js`;
-    document.head.appendChild(WeatherActivation);
-    WeatherActivation.onload = function () {
-        console.log('External WeatherActivation loaded successfully');
-    };
-    WeatherActivation.onerror = function () {
-        console.error('Error loading external WeatherActivation');
-    };
-}
-
-/* Helpers */
-
+// Helper to find centroid of coordinates
 function findCentroid(coordsArray) {
     let latSum = 0, lonSum = 0, count = 0;
     coordsArray.flat(2).forEach(([lat, lon]) => {
