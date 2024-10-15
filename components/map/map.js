@@ -4,7 +4,7 @@ function mapRun() {
     map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/standard',
-        center: [longitude, latitude],
+        center: [appState.longitude, appState.latitude],
         zoom: 10
     });
 
@@ -18,11 +18,12 @@ function mapRun() {
         'Law': 'https://ensloadout.911emergensee.com/ens-packages/icopacks/0/police.png',
         'EMS': 'https://ensloadout.911emergensee.com/ens-packages/icopacks/0/ems.png',
         'Road Closure': 'https://ensloadout.911emergensee.com/ens-packages/icopacks/0/roadclosure.png'
-      };
+    };
       
-      const roadClosureIconUrl = 'https://ensloadout.911emergensee.com/ens-packages/icopacks/0/roadclosure.png';
+    const roadClosureIconUrl = 'https://ensloadout.911emergensee.com/ens-packages/icopacks/0/roadclosure.png';
 
-      activeData.forEach((point, index) => {
+    appState.activeData.forEach((point, index) => {
+        console.log('Icon type:', point.agency_type);
         if (point.location.includes('-')) {
             const match = point.location.match(/(\d+)-(\d+)\s+(.*)/);
             if (match) {
@@ -107,8 +108,8 @@ function mapRun() {
                                 const el = document.createElement('div');
                                 el.className = 'custom-marker';
                                 el.style.backgroundImage = `url(${roadClosureIconUrl})`; // Define this variable based on your icon selection logic
-                                el.style.width = '30px';
-                                el.style.height = '30px';
+                                el.style.width = '29px';
+                                el.style.height = '37px';
                                 el.style.backgroundSize = 'cover';
     
                                 new mapboxgl.Marker(el)
@@ -120,14 +121,14 @@ function mapRun() {
                 }).catch(err => console.error('Error geocoding addresses:', err));
             }
           } else {
-              const iconType = point.type; // Adjust this according to how you determine the icon type
+              const iconType = point.agency_type; // Adjust this according to how you determine the icon type
               const iconUrl = icons[iconType] || icons['Default']; // Provide a default icon URL if necessary
       
               const el = document.createElement('div');
               el.className = 'custom-marker';
               el.style.backgroundImage = `url(${iconUrl})`;
-              el.style.width = '50px';
-              el.style.height = '50px';
+              el.style.width = '29px';
+              el.style.height = '37px';
               el.style.backgroundSize = 'cover';
       
               new mapboxgl.Marker(el)
@@ -137,42 +138,51 @@ function mapRun() {
           }
       });
 
-    map.on('load', function () {
-        if (countyCords.length === 1) {
-        map.addLayer({
-            'id': 'polygon-outline',
-            'type': 'line',
-            'source': {
-                'type': 'geojson',
-                'data': {
+      map.on('load', function () {
+        if (appState.countyCords.length === 1) {
+            const coordinates = appState.countyCords[0];
+    
+            // Create the GeoJSON object for the single polygon
+            const geojsonData = {
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'Polygon',
+                    'coordinates': [coordinates] // Wrap the coordinates array inside another array for GeoJSON
+                }
+            };
+    
+            // Add the layer to the map
+            map.addLayer({
+                'id': 'polygon-outline',
+                'type': 'line',
+                'source': {
+                    'type': 'geojson',
+                    'data': geojsonData
+                },
+                'layout': {},
+                'paint': {
+                    'line-color': '#FF0000',
+                    'line-width': 2
+                }
+            });
+        } else {
+            // For multiple polygons
+            appState.countyCords.forEach((singleCord, i) => {
+                const geojsonData = {
                     'type': 'Feature',
                     'geometry': {
                         'type': 'Polygon',
-                        'coordinates': countyCords,
+                        'coordinates': [singleCord] // Wrap each single polygon inside an array for GeoJSON
                     }
-                }
-            },
-            'layout': {},
-            'paint': {
-                'line-color': '#FF0000',
-                'line-width': 2
-            }
-        });
-        } else {
-            let i = 1
-            countyCords.forEach(singleCord => {
+                };
+    
+                // Add each layer to the map
                 map.addLayer({
                     'id': `polygon-outline${i}`,
                     'type': 'line',
                     'source': {
                         'type': 'geojson',
-                        'data': {
-                            'type': 'Feature',
-                            'geometry': {
-                                'type': 'Polygon',
-                                'coordinates': singleCord,
-                            }
-                        }
+                        'data': geojsonData
                     },
                     'layout': {},
                     'paint': {
@@ -180,13 +190,13 @@ function mapRun() {
                         'line-width': 2
                     }
                 });
-                i++
-            })
+            });
         }
     });
+    
 
     map.on('load', function() {
-        if (warningData.length >= 1) {
+        if (appState.warningData.length >= 1) {
             warningData.forEach((warning, index) => {
                 if (warning.geometry != null) {
                     const layerIdFill = `warning-fill-${index}`;
@@ -253,7 +263,7 @@ function mapRun() {
         }
     });
 
-    if (alertStatus != "off") {
+    if (appState.alertStatus != "off") {
         map.on('load', function(){
             map.addLayer({
                 "id": "simple-tiles",

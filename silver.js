@@ -99,11 +99,25 @@ async function countyCordsGrab() {
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         
         const countyData = await response.json();
-        appState.countyCords = countyData.geometry.coordinates;
+
+        // Log the coordinates to ensure it's structured as expected
+        console.log('County coordinates:', countyData.geometry.coordinates);
+
+        // Ensure that countyData.geometry.coordinates is a valid array
+        if (!countyData.geometry || !Array.isArray(countyData.geometry.coordinates)) {
+            throw new Error('Invalid coordinates format in response');
+        }
+
+        // Since countyData.geometry.coordinates is an array with a single item that contains the actual coordinates
+        appState.countyCords = countyData.geometry.coordinates[0]; // Access the first element directly
+
+        // Pass the array of coordinates to find the centroid
         appState.centcord = findCentroid(appState.countyCords);
-        const [longitude, latitude] = String(appState.centcord).split(',').map(parseFloat);
+        const [longitude, latitude] = appState.centcord.map(parseFloat);
         appState.longitude = longitude;
         appState.latitude = latitude;
+
+        // Proceed to map load
         mapLoad();
     } catch (error) {
         console.error('Error fetching county coordinates:', error.message);
@@ -160,11 +174,29 @@ function tableTrigger() {
 
 // Helper to find centroid of coordinates
 function findCentroid(coordsArray) {
+    // Check if coordsArray is a valid array
+    if (!Array.isArray(coordsArray) || coordsArray.length === 0) {
+        console.error('Invalid coordsArray for calculating centroid');
+        return [0, 0]; // Return default coordinates if invalid
+    }
+
     let latSum = 0, lonSum = 0, count = 0;
-    coordsArray.flat(2).forEach(([lat, lon]) => {
-        latSum += lat;
-        lonSum += lon;
-        count++;
+
+    // Calculate the centroid by summing all the latitudes and longitudes
+    coordsArray.forEach(([lon, lat]) => {
+        if (typeof lat === 'number' && typeof lon === 'number') {
+            latSum += lat;
+            lonSum += lon;
+            count++;
+        } else {
+            console.warn('Invalid coordinate:', [lat, lon]);
+        }
     });
-    return [latSum / count, lonSum / count];
+
+    if (count === 0) {
+        console.error('No valid coordinates found');
+        return [0, 0]; // Return default coordinates if no valid points
+    }
+
+    return [lonSum / count, latSum / count]; // Return the calculated centroid
 }
