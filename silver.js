@@ -17,22 +17,22 @@ function loadStylesheet(href) {
 }
 
 // Data Store (use an object for better structure)
-let appState = {
-    map: null,
-    activeData: "",
-    dayCount: "",
-    yearCount: "",
-    countyCords: "",
-    weatherData: "",
-    countyCode: "",
-    alertStatus: "off",
-    warnings: [],
-    warningData: [],
-    watch: [],
-    latitude: "",
-    longitude: "",
-    centcord: ""
-};
+
+map = null
+activeData = ""
+dayCount = ""
+yearCount = ""
+countyCords = ""
+weatherData = ""
+countyCode = ""
+alertStatus = "off"
+warnings = []
+warningData = []
+watch = []
+latitude = ""
+longitude = ""
+centcord = ""
+
 
 // Remove all child elements from rootDiv (optimize with innerHTML)
 rootDiv.innerHTML = "";
@@ -62,10 +62,10 @@ async function dataGrab() {
         const response = await fetch(`https://matrix.911-ens-services.com/data/${clientID}`);
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         
-        appState.activeData = await response.json();
-        console.log(appState.activeData);
-        appState.countyCode = nwsId;
-        console.log(appState.countyCode);
+        activeData = await response.json();
+        console.log(activeData);
+        countyCode = nwsId;
+        console.log(countyCode);
         countsLoad(); 
     } catch (error) {
         console.error('Error fetching client information:', error.message);
@@ -77,8 +77,8 @@ async function countsLoad() {
     try {
         const response = await fetch(`https://matrix.911-ens-services.com/count/${clientID}`);
         const countData = await response.json();
-        appState.dayCount = countData.currentDateCount;
-        appState.yearCount = countData.totalCount;
+        dayCount = countData.currentDateCount;
+        yearCount = countData.totalCount;
         countTrigger();
     } catch (error) {
         console.error('Error fetching counts:', error.message);
@@ -95,33 +95,21 @@ function countTrigger() {
 // Fetch and process county coordinates
 async function countyCordsGrab() {
     try {
-        const response = await fetch(`https://api.weather.gov/zones/county/${appState.countyCode}`);
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        
-        const countyData = await response.json();
-
-        // Log the coordinates to ensure it's structured as expected
-        console.log('County coordinates:', countyData.geometry.coordinates);
-
-        // Ensure that countyData.geometry.coordinates is a valid array
-        if (!countyData.geometry || !Array.isArray(countyData.geometry.coordinates)) {
-            throw new Error('Invalid coordinates format in response');
+        const response = await fetch(`https://api.weather.gov/zones/county/${countyCode}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
-
-        // Since countyData.geometry.coordinates is an array with a single item that contains the actual coordinates
-        appState.countyCords = countyData.geometry.coordinates[0]; // Access the first element directly
-
-        // Pass the array of coordinates to find the centroid
-        appState.centcord = findCentroid(appState.countyCords);
-        const [longitude, latitude] = appState.centcord.map(parseFloat);
-        appState.longitude = longitude;
-        appState.latitude = latitude;
-
-        // Proceed to map load
-        mapLoad();
+        countyData = await response.json();
+        countyCords = countyData.geometry.coordinates;
+        centcord = findCentroid(countyCords);
     } catch (error) {
-        console.error('Error fetching county coordinates:', error.message);
+        console.error('Error fetching client information:', error.message);
     }
+    let centcordstr = String(centcord);
+    let parts = centcordstr.split(',');
+    longitude = parseFloat(parts[0]);
+    latitude = parseFloat(parts[1]);
+    mapLoad();
 }
 
 // Load external map script
@@ -134,11 +122,11 @@ function mapLoad() {
 // Fetch and process weather alerts
 async function countyWeatherGrab() {
     try {
-        const response = await fetch(`https://api.weather.gov/alerts/active?zone=${appState.countyCode}`);
+        const response = await fetch(`https://api.weather.gov/alerts/active?zone=${countyCode}`);
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         
         const countyWeatherData = await response.json();
-        appState.weatherData = countyWeatherData;
+        weatherData = countyWeatherData;
         weather();
     } catch (error) {
         console.error('Error fetching weather data:', error.message);
@@ -147,21 +135,21 @@ async function countyWeatherGrab() {
 
 // Process weather data
 function weather() {
-    if (appState.weatherData.features?.length) {
-        appState.weatherData.features.forEach(item => {
+    if (weatherData.features?.length) {
+        weatherData.features.forEach(item => {
             if (item.properties.event.includes("Warning")) {
-                appState.alertStatus = "Warning";
-                appState.warningData.push(item);
-                appState.warnings.push(item.properties.headline);
+                alertStatus = "Warning";
+                warningData.push(item);
+                warnings.push(item.properties.headline);
             } else if (item.properties.event.includes("Watch")) {
-                if (appState.alertStatus === "off") {
-                    appState.alertStatus = "Watch";
+                if (alertStatus === "off") {
+                    alertStatus = "Watch";
                 }
-                appState.watch.push(item.properties.headline);
+                watch.push(item.properties.headline);
             }
         });
     } else {
-        appState.alertStatus = "off";
+        alertStatus = "off";
         console.log("No warnings");
     }
 }
@@ -172,31 +160,28 @@ function tableTrigger() {
     loadStylesheet('https://ensloadout.911emergensee.com/ens-packages/components/live-tables/lt0.css');
 }
 
-// Helper to find centroid of coordinates
 function findCentroid(coordsArray) {
-    // Check if coordsArray is a valid array
-    if (!Array.isArray(coordsArray) || coordsArray.length === 0) {
-        console.error('Invalid coordsArray for calculating centroid');
-        return [0, 0]; // Return default coordinates if invalid
-    }
-
-    let latSum = 0, lonSum = 0, count = 0;
-
-    // Calculate the centroid by summing all the latitudes and longitudes
-    coordsArray.forEach(([lon, lat]) => {
-        if (typeof lat === 'number' && typeof lon === 'number') {
-            latSum += lat;
-            lonSum += lon;
+    let latSum = 0;
+    let lonSum = 0;
+    let count = 0;
+    if (coordsArray.length > 1) {
+        coordsArray.forEach(coordBlock => {
+        coordBlock.forEach(coords => {
+            coords.forEach(coord => {
+                latSum += coord[0];
+                lonSum += coord[1];
+                count++;
+            });
+        });
+    })
+    } else {
+        coordsArray.forEach(coords => {
+        coords.forEach(coord => {
+            latSum += coord[0];
+            lonSum += coord[1];
             count++;
-        } else {
-            console.warn('Invalid coordinate:', [lat, lon]);
-        }
+        });
     });
-
-    if (count === 0) {
-        console.error('No valid coordinates found');
-        return [0, 0]; // Return default coordinates if no valid points
     }
-
-    return [lonSum / count, latSum / count]; // Return the calculated centroid
-}
+    return [latSum / count, lonSum / count];
+    }

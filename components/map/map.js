@@ -4,7 +4,7 @@ function mapRun() {
     map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/standard',
-        center: [appState.longitude, appState.latitude],
+        center: [longitude, latitude],
         zoom: 10
     });
 
@@ -22,7 +22,7 @@ function mapRun() {
       
     const roadClosureIconUrl = 'https://ensloadout.911emergensee.com/ens-packages/icopacks/0/roadclosure.png';
 
-    appState.activeData.forEach((point, index) => {
+    activeData.forEach((point, index) => {
         console.log('Icon type:', point.agency_type);
         if (point.location.includes('-')) {
             const match = point.location.match(/(\d+)-(\d+)\s+(.*)/);
@@ -139,8 +139,8 @@ function mapRun() {
       });
 
       map.on('load', function () {
-        if (appState.countyCords.length === 1) {
-            const coordinates = appState.countyCords[0];
+        if (countyCords.length === 1) {
+            const coordinates = countyCords[0];
     
             // Create the GeoJSON object for the single polygon
             const geojsonData = {
@@ -167,7 +167,7 @@ function mapRun() {
             });
         } else {
             // For multiple polygons
-            appState.countyCords.forEach((singleCord, i) => {
+            countyCords.forEach((singleCord, i) => {
                 const geojsonData = {
                     'type': 'Feature',
                     'geometry': {
@@ -196,7 +196,7 @@ function mapRun() {
     
 
     map.on('load', function() {
-        if (appState.warningData.length >= 1) {
+        if (warningData.length >= 1) {
             warningData.forEach((warning, index) => {
                 if (warning.geometry != null) {
                     const layerIdFill = `warning-fill-${index}`;
@@ -263,7 +263,7 @@ function mapRun() {
         }
     });
 
-    if (appState.alertStatus != "off") {
+    if (alertStatus != "off") {
         map.on('load', function(){
             map.addLayer({
                 "id": "simple-tiles",
